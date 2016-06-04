@@ -28,7 +28,7 @@
             margin: 0;
             text-align: left;
             width: 100%;
-            background: #e9dfc7;
+            /*background: #e9dfc7;*/
             overflow: hidden;
         }
 
@@ -364,7 +364,7 @@
 <script src="js/jquery.jsonp.js"></script>
 
 <script>
-    (function () {
+    $(function () {
         var Util = (function () {
             var prefix = "html5_reader_";
             var storageGetter = function (key) {
@@ -389,7 +389,6 @@
             };
 
 
-
             return {
                 storageGetter: storageGetter,
                 storageSetter: storageSetter,
@@ -408,30 +407,30 @@
         var Win = $(window);
         var Doc = $(document);
         var RootContainer = $("#fictionContainer");
-        var reader_model=readerModel();
+        var reader_model = readerModel();
         var readerUI;
 
 
-        var dayNightSwitch = function (state) {
+        function dayNightSwitch(state) {
             if (state == "day") {
                 $("#nightIcon").attr("id", "dayIcon");
                 $("#dayNightText").text("白天");
-                initBackgroundColor = Util.storageGetter("pre-background-color");
-                $("body").css("background", initBackgroundColor);
-                Util.storageSetter("background-color", initBackgroundColor);
+                backgroundColor = Util.storageGetter("pre-background-color");
+                $("body").css("background", backgroundColor);
+                Util.storageSetter("background-color", backgroundColor);
                 Util.storageSetter("dayNightState", "day");
             }
             else if (state == "night") {
                 $("#dayIcon").attr("id", "nightIcon");
                 $("#dayNightText").text("夜间");
                 //记录之前的背景颜色
-                Util.storageSetter("pre-background-color", initBackgroundColor);
+                Util.storageSetter("pre-background-color", backgroundColor);
                 $("body").css("background", "#000");
                 Util.storageSetter("background-color", "#000");
                 Util.storageSetter("dayNightState", "night");
             }
             else console.log("Day night switch error.");
-        };
+        }
 
         //初始化
         //初始化字体大小
@@ -444,16 +443,17 @@
         RootContainer.css("font-size", initFontSize);
 
         //初始化背景颜色
-        var initBackgroundColor = Util.storageGetter("background-color");
-        if (!initBackgroundColor) {
-            initBackgroundColor = "#e9dfc7";
+        var backgroundColor = Util.storageGetter("background-color");
+        if (backgroundColor=="null") {
+            backgroundColor = "#e9dfc7";
         }
-        $("body").css("background-color", initBackgroundColor);
+        $("body").css("background", backgroundColor);
+
 
         //初始化日夜状态
         var initDayNightState = Util.storageGetter("dayNightState");
         if (!initDayNightState) {
-            return;
+            dayNightSwitch("day");
         }
         else {
             dayNightSwitch(initDayNightState);
@@ -466,11 +466,11 @@
             readerUI = readerBaseFrame(RootContainer);
             reader_model.init(function (data) {
                 readerUI(data);
-
             });
             eventHandler();
 
         }
+
 
         function readerModel() {
             //实现和阅读器相关的数据交互的方法
@@ -481,7 +481,7 @@
             //初始化章节内容
             var init = function (UIcallback) {
 
-                    pageGetter();
+                pageGetter();
 
                 getFictionInfo(function () {
                     getCurChapterInfo(chapterId, function (data) {
@@ -495,7 +495,7 @@
                 $.get("data/chapter.json", function (data) {
                     //TODO 获得章节信息之后的回调
                     chapterId = data.chapters[1].chapter_id;
-                    chapterTotal=data.chapters.length;
+                    chapterTotal = data.chapters.length;
                     callback && callback();
                 }, "json");
             };
@@ -512,20 +512,20 @@
             };
 
             var prevChapter = function (UIcallback) {
-                chapterId = parseInt(chapterId,10);
-                if(chapterId==0){
+                chapterId = parseInt(chapterId, 10);
+                if (chapterId == 0) {
                     return;
                 }
-                else{
-                    chapterId-=1;
-                    getCurChapterInfo(chapterId,UIcallback);
+                else {
+                    chapterId -= 1;
+                    getCurChapterInfo(chapterId, UIcallback);
                     pageSetter();
                 }
             };
 
             var nextChapter = function (UIcallback) {
-                chapterId = parseInt(chapterId,10);
-                if(chapterId==chapterTotal){
+                chapterId = parseInt(chapterId, 10);
+                if (chapterId == chapterTotal) {
                     return;
                 }
                 else {
@@ -536,12 +536,12 @@
             };
 
             var pageSetter = function () {
-                location.hash=chapterId;
+                location.hash = chapterId;
             };
 
             var pageGetter = function () {
-                if(!location.hash){
-                    chapterId=1;
+                if (!location.hash) {
+                    chapterId = 1;
                 }
                 else {
                     chapterId = parseInt((location.hash).substring(1));
@@ -639,21 +639,24 @@
                 $(".bgBtnContainer").html("");
                 //为触发的dom添加外圈样式
                 $(this).html("<div class=\"currentBgBtnContainer\"></div>");
-                var backgroundColor = $(this).css("background");
+                backgroundColor = $(this).css("background");
                 $("body").css("background", backgroundColor);
                 Util.storageSetter("background-color", backgroundColor);
                 Util.storageSetter("dayNightState", "day");
+                dayNightSwitch("day");
             });
 
             $("#prevBtn").click(function () {
                 reader_model.prevChapter(function (data) {
                     readerUI(data);
+                    $(window).scrollTop(0);
                 });
             });
 
             $("#nextBtn").click(function () {
                 reader_model.nextChapter(function (data) {
                     readerUI(data);
+                    $(window).scrollTop(0);
                 });
             });
 
@@ -661,7 +664,7 @@
 
         main();
 
-    })();
+    });
 
 </script>
 
